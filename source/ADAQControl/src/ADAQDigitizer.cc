@@ -4,7 +4,7 @@
 //                 Zachary Seth Hartwig : All rights reserved                  //
 //                                                                             //
 //      The ADAQ libraries source code is licensed under the GNU GPL v3.0.     //
-//      You have the right to modify and/or redistribute this source code      //      
+//      You have the right to modify and/or redistribute this source code      //
 //      under the terms specified in the license, which may be found online    //
 //      at http://www.gnu.org/licenses or at $ADAQ/License.md.                 //
 //                                                                             //
@@ -28,7 +28,7 @@
 //       of CAEN digitizer. All digitizer-specific information (number
 //       of channels, bit-depth, etc) is set upon establishing a valid
 //       VME connection to the unit, while all methods are intended to
-//       be as general as possible across all supported digitizers. 
+//       be as general as possible across all supported digitizers.
 //
 //       Two sets of "wrappers" are provided. First, the class
 //       provides complete "wrapping" of the functions contained in
@@ -44,7 +44,7 @@
 //       utilized in the ADAQ Python module that is created with
 //       Boost.Python during the ADAQ library build process. WARNING:
 //       These are experimental methods that haven't been touched
-//       since 2012! 
+//       since 2012!
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -104,7 +104,7 @@ using namespace ZLE;
 
 
 namespace BlockMgmt{
-  
+
 
 }
 using namespace BlockMgmt;
@@ -161,7 +161,7 @@ ADAQDigitizer::ADAQDigitizer(ZBoardType Type,  // ADAQ-specific device type iden
     (zDT5730, 8)              // fact that many CAEN units only read out on even
     (zDT5790M, 4)             // even numbered timestamps (LSB=0), reducing the
     (zDT5790N, 4)             // resolution relative to the quote range.  These
-    (zDT5790P, 4);            // numbers are the single timestamp units, which 
+    (zDT5790P, 4);            // numbers are the single timestamp units, which
                               // DO NOT NECESSARILY MATCH THE "RESOLUTION"
 }
 
@@ -173,31 +173,31 @@ ADAQDigitizer::~ADAQDigitizer()
 int ADAQDigitizer::OpenLink()
 {
   CommandStatus = -42;
-  
+
   if(LinkEstablished){
     if(Verbose)
       std::cout << "ADAQDigitizer[" << BoardID << "] : Error opening link! Link is already open!"
 		<< std::endl;
   }
   else{
-    CommandStatus = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_USB, 
+    CommandStatus = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_USB,
 					    BoardLinkNumber,
 					    BoardCONETNode,
 					    BoardAddress,
 					    &BoardHandle);
   }
-  
+
   if(CommandStatus == CAEN_DGTZ_Success){
-    
+
     LinkEstablished = true;
-    
+
     if(Verbose){
-      
+
       // Readout information about digitizer device into class data members
 
       CAEN_DGTZ_BoardInfo_t BoardInformation;
       CAEN_DGTZ_GetInfo(BoardHandle, &BoardInformation);
-      
+
       // High-level Physical information about the board
       BoardSerialNumber = BoardInformation.SerialNumber;
       BoardModelName = BoardInformation.ModelName;
@@ -242,18 +242,18 @@ int ADAQDigitizer::OpenLink()
       case V1730_DPP_PSD_CODE:
 	BoardFirmwareType = "PSD";
 	break;
-	
+
       case V1751_DPP_ZLE_CODE:
 	BoardFirmwareType = "ZLE";
 	break;
-	
+
       default:
 	BoardFirmwareType = "STD";
 	break;
       }
 
-      
-      
+
+
       // Conceptual information about the digitization
       NumChannels = BoardInformation.Channels;
       NumADCBits = BoardInformation.ADC_NBits;
@@ -297,7 +297,7 @@ int ADAQDigitizer::OpenLink()
     if(Verbose and !LinkEstablished)
       std::cout << "ADAQDigitizer[" << BoardID << "] : Error opening link! Returned error code: " << CommandStatus << "\n"
 		<< std::endl;
-  
+
   return CommandStatus;
 }
 
@@ -305,14 +305,14 @@ int ADAQDigitizer::OpenLink()
 int ADAQDigitizer::CloseLink()
 {
   CommandStatus = -42;
-  
+
   if(LinkEstablished)
     CommandStatus = CAEN_DGTZ_CloseDigitizer(BoardHandle);
   else
     if(Verbose)
       std::cout << "ADAQDigitizer[" << BoardID << "] : Error closing link! Link is already closed!\n"
 		<< std::endl;
-  
+
   if(CommandStatus == CAEN_DGTZ_Success){
 
     LinkEstablished = false;
@@ -325,7 +325,7 @@ int ADAQDigitizer::CloseLink()
     if(Verbose and LinkEstablished)
       std::cout << "ADAQDigitizer[" << BoardID << "] : Error closing link! Error code: " << CommandStatus << "\n"
 		<< std::endl;
-  
+
   return CommandStatus;
 }
 
@@ -333,22 +333,22 @@ int ADAQDigitizer::CloseLink()
 int ADAQDigitizer::Initialize()
 {
   CommandStatus = -42;
-  
+
   // Reset the board firmware
   CommandStatus = CAEN_DGTZ_WriteRegister(BoardHandle, CAEN_DGTZ_SW_RESET_ADD, 0x00000000);
-  
+
   // Set the VME control: all disabled, enable BERR
   CommandStatus = CAEN_DGTZ_WriteRegister(BoardHandle, CAEN_DGTZ_VME_CONTROL_ADD, 0x00000010);
-  
-  // Set front panel I/O controls 
+
+  // Set front panel I/O controls
   CommandStatus = CAEN_DGTZ_WriteRegister(BoardHandle, CAEN_DGTZ_FRONT_PANEL_IO_CTRL_ADD, 0x00000000);
-  
-  // Set the trigger source enable mask 
+
+  // Set the trigger source enable mask
   CommandStatus = CAEN_DGTZ_WriteRegister(BoardHandle, CAEN_DGTZ_TRIGGER_SRC_ENABLE_ADD, 0xC0000080);
-  
+
   // Set the channel trigger enable mask
   CommandStatus = CAEN_DGTZ_WriteRegister(BoardHandle, CAEN_DGTZ_FP_TRIGGER_OUT_ENABLE_ADD, 0x00000000);
-  
+
   // Set the channel configuration
   CommandStatus = CAEN_DGTZ_WriteRegister(BoardHandle, CAEN_DGTZ_BROAD_CH_CTRL_ADD, 0x00000050);
 
@@ -357,12 +357,12 @@ int ADAQDigitizer::Initialize()
 
 
 int ADAQDigitizer::SetRegisterValue(uint32_t Addr32, uint32_t Data32)
-{ 
+{
   CommandStatus = -42;
-  
+
   if(CheckRegisterForWriting(Addr32))
-    CommandStatus = CAEN_DGTZ_WriteRegister(BoardHandle, Addr32, Data32); 
-  
+    CommandStatus = CAEN_DGTZ_WriteRegister(BoardHandle, Addr32, Data32);
+
   return CommandStatus;
 }
 
@@ -373,7 +373,7 @@ int ADAQDigitizer::GetRegisterValue(uint32_t Addr32, uint32_t *Data32)
 
   if(CheckRegisterForWriting(Addr32))
     CommandStatus = CAEN_DGTZ_ReadRegister(BoardHandle, Addr32, Data32);
-  
+
   return CommandStatus;
 }
 
@@ -401,13 +401,13 @@ bool ADAQDigitizer::CheckForEnabledChannel()
 {
   uint32_t ChannelEnableMask = 0;
   GetChannelEnableMask(&ChannelEnableMask);
-  
+
   if((0xffff & ChannelEnableMask) == 0){
     cout << "ADAQDigitizer : Warning! No channels were enabled for acquisition!\n"
 	 << endl;
     return false;
   }
-  else 
+  else
     return true;
 }
 
@@ -427,12 +427,12 @@ int ADAQDigitizer::DisableAutoTrigger(uint32_t ChannelEnableMask)
 int ADAQDigitizer:: EnableExternalTrigger(std::string SignalLogic)
 {
   CommandStatus = SetExtTriggerInputMode(CAEN_DGTZ_TRGMODE_ACQ_AND_EXTOUT);
-  
+
   // Get the value of the front panel I/O control register
   uint32_t FrontPanelIOControlRegister = CAEN_DGTZ_FRONT_PANEL_IO_CTRL_ADD;
   uint32_t FrontPanelIOControlValue = 0;
   CommandStatus = GetRegisterValue(FrontPanelIOControlRegister, &FrontPanelIOControlValue);
-  
+
   // When Bit[0] of return value == 0, NIM logic is used for input; so
   // clear Bit[0] using bitwise ops if "NIM" is specified
   if(SignalLogic=="NIM")
@@ -445,28 +445,28 @@ int ADAQDigitizer:: EnableExternalTrigger(std::string SignalLogic)
 		<< SignalLogic << ") was specified!" << "\n"
 		<< "                Select 'NIM' or 'TTL'!\n"
 		<< std::endl;
-  
+
   CommandStatus = SetRegisterValue(FrontPanelIOControlRegister, FrontPanelIOControlValue);
   return CommandStatus;
 }
 
 
 int ADAQDigitizer::DisableExternalTrigger()
-{ 
-  CommandStatus = SetExtTriggerInputMode(CAEN_DGTZ_TRGMODE_DISABLED); 
+{
+  CommandStatus = SetExtTriggerInputMode(CAEN_DGTZ_TRGMODE_DISABLED);
   return CommandStatus;
 }
 
 
 int ADAQDigitizer:: EnableSWTrigger()
-{ 
+{
   CommandStatus = SetSWTriggerMode(CAEN_DGTZ_TRGMODE_ACQ_ONLY);
   return CommandStatus;
 }
 
 
 int ADAQDigitizer::DisableSWTrigger()
-{ 
+{
   CommandStatus = SetSWTriggerMode(CAEN_DGTZ_TRGMODE_DISABLED);
   return CommandStatus;
 }
@@ -477,10 +477,10 @@ int ADAQDigitizer::SetTriggerEdge(int Channel, string TriggerEdge)
   CommandStatus = -42;
 
   if(TriggerEdge == "Rising")
-    CommandStatus = SetTriggerPolarity(Channel, 
+    CommandStatus = SetTriggerPolarity(Channel,
 				       CAEN_DGTZ_TriggerOnRisingEdge);
   else if(TriggerEdge == "Falling")
-    CommandStatus = SetTriggerPolarity(Channel, 
+    CommandStatus = SetTriggerPolarity(Channel,
 				       CAEN_DGTZ_TriggerOnFallingEdge);
   else
     if(Verbose)
@@ -488,7 +488,7 @@ int ADAQDigitizer::SetTriggerEdge(int Channel, string TriggerEdge)
 		<< TriggerEdge << ") was specified!\n"
 		<< "               Select 'Rising' or 'Falling'\n"
 		<< std::endl;
-  
+
   return CommandStatus;
 }
 
@@ -498,15 +498,15 @@ int ADAQDigitizer::SetTriggerCoincidence(bool Enable, int Level)
   CommandStatus = -42;
 
   if(Enable){
-    
+
     uint32_t TriggerSourceEnableMask = 0;
 
     uint32_t TriggerCoincidenceLevel_BitShifted = Level << 24;
 
     CommandStatus = GetRegisterValue(0x810C,&TriggerSourceEnableMask);
-    
+
     TriggerSourceEnableMask = TriggerSourceEnableMask | TriggerCoincidenceLevel_BitShifted;
-    
+
     CommandStatus = SetRegisterValue(0x810C,TriggerSourceEnableMask);
   }
   return CommandStatus;
@@ -518,17 +518,17 @@ int ADAQDigitizer::SetTriggerCoincidence(bool Enable, int Level)
 /////////////////////////
 
 int ADAQDigitizer::SetAcquisitionControl(string AcqControl)
-{ 
+{
   CommandStatus = -42;
-  
+
   if(AcqControl == "Software")
     CommandStatus = SetAcquisitionMode(CAEN_DGTZ_SW_CONTROLLED);
   else if(AcqControl == "Gated (NIM)" or AcqControl == "Gated (TTL)"){
     CommandStatus = SetAcquisitionMode(CAEN_DGTZ_S_IN_CONTROLLED);
-    
+
     uint32_t Data32 = 0;
     CommandStatus = GetRegisterValue(CAEN_DGTZ_FRONT_PANEL_IO_CTRL_ADD, &Data32);
-    
+
     bitset<32> Data32Bitset0(Data32);
 
     if(AcqControl == "Gated (NIM)")
@@ -538,10 +538,10 @@ int ADAQDigitizer::SetAcquisitionControl(string AcqControl)
 
     Data32 = (uint32_t)Data32Bitset0.to_ulong();
     CommandStatus = SetRegisterValue(CAEN_DGTZ_FRONT_PANEL_IO_CTRL_ADD, Data32);
-    
+
     //    uint32_t Data32 = 0;
     CommandStatus = GetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, &Data32);
-    
+
     bitset<32> Data32Bitset1(Data32);
     Data32Bitset1.set(0,1);
     Data32Bitset1.set(1,0);
@@ -555,7 +555,7 @@ int ADAQDigitizer::SetAcquisitionControl(string AcqControl)
 		<< AcqControl << ") was specified!\n"
 		<< "                Select 'Software', 'Gated (NIM)' or 'Gated (TTL)'.\n"
 		<< std::endl;
-  
+
   return CommandStatus;
 }
 
@@ -568,11 +568,14 @@ int ADAQDigitizer::SInArmAcquisition()
   // At present, it appears necessary to directly set the bits
   // appropriate to ensure a TTL/NIM signal fed into S-IN (VME) or GPI
   // (DT) can be used to control the acquisition on/off.
-  
+
   bitset<32> Data32Bitset(Data32);
   Data32Bitset.set(0,1);
   Data32Bitset.set(1,0);
   Data32Bitset.set(2,1);
+
+  // Set option for all triggers to be accepted.
+  Data32Bitset.set(3, 1);
   Data32 = (uint32_t)Data32Bitset.to_ulong();
 
   CommandStatus = SetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, Data32);
@@ -585,17 +588,17 @@ int ADAQDigitizer::SInDisarmAcquisition()
 {
   uint32_t Data32 = 0;
   CommandStatus = GetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, &Data32);
-  
+
   bitset<32> Data32Bitset(Data32);
   Data32Bitset.set(0,0);
   Data32Bitset.set(1,0);
   Data32Bitset.set(2,0);
   Data32 = (uint32_t)Data32Bitset.to_ulong();
-  
+
   CommandStatus = SetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, Data32);
 
   CommandStatus = SetAcquisitionMode(CAEN_DGTZ_SW_CONTROLLED);
-  
+
   return CommandStatus;
 }
 
@@ -603,7 +606,7 @@ int ADAQDigitizer::SInDisarmAcquisition()
 int ADAQDigitizer::SetZSMode(string ZSMode)
 {
   CommandStatus = -42;
-  
+
   if(ZSMode == "None")
     CommandStatus = SetZeroSuppressionMode(CAEN_DGTZ_ZS_NO);
   else if(ZSMode == "ZLE")
@@ -614,7 +617,7 @@ int ADAQDigitizer::SetZSMode(string ZSMode)
 		<< ZSMode << ") was specified!\n"
 		<< "                Select 'None' or 'ZLE'.\n"
 		<< std::endl;
-  
+
   return CommandStatus;
 }
 
@@ -630,46 +633,46 @@ int ADAQDigitizer::SetZLEChannelSettings(uint32_t Channel, uint32_t Threshold,
 
   ////////////////////////
   // Set the ZLE threshold
-  
-  CommandStatus = SetChannelZSParams(Channel, 
+
+  CommandStatus = SetChannelZSParams(Channel,
 				     DummyWeight, // Arbitrary; unused in ZLE algorithm
 				     Threshold,
 				     DummySamples); // Arbitrary; unused in ZLE algorithm
-  
+
   //////////////////////////////////////////////
   // Set the ZLE backward/forward sample numbers
-  
-  uint32_t ChannelOffset = 0x100; 
-  
+
+  uint32_t ChannelOffset = 0x100;
+
   uint32_t Addr32 = CAEN_DGTZ_CHANNEL_ZS_NSAMPLE_BASE_ADDRESS;
   Addr32 += (ChannelOffset * Channel);
-  
+
   uint32_t Data32 = (NBackward << 16) + NForward;
   CommandStatus = SetRegisterValue(Addr32, Data32);
-  
+
   //////////////////////////////
   // Set the ZLE algorithm logic
-  
+
   Addr32 = CAEN_DGTZ_CHANNEL_ZS_THRESHOLD_BASE_ADDRESS;
   Addr32 += (ChannelOffset * Channel);
-  
+
   CommandStatus = GetRegisterValue(Addr32, &Data32);
-  
+
   // ZLE requires bit 31 == 0 (positive logic), == 1 (negative logic)
   bitset<32> Data32Bitset(Data32);
   (PosLogic) ? Data32Bitset.set(31,0) : Data32Bitset.set(31,1);
-  
+
   // Convert bitset back to 32-bit integer and set register value
   Data32 = (uint32_t)Data32Bitset.to_ulong();
   CommandStatus = SetRegisterValue(Addr32, Data32);
 
 
-  
+
   return CommandStatus;
 }
 
 
-int ADAQDigitizer::PrintZLEEventInfo(char *Buffer, 
+int ADAQDigitizer::PrintZLEEventInfo(char *Buffer,
 				     int Event)
 
 {
@@ -686,10 +689,10 @@ int ADAQDigitizer::PrintZLEEventInfo(char *Buffer,
   }
   else
     ZLEStartWord = ZLEWordCounter;
-  
+
   uint32_t EventSize = Words[ZLEStartWord] & ZLEEventSizeMask;
   ZLEWordCounter += EventSize;
-  
+
   cout << "  Event number : " << Event << " (within FPGA readout buffer)\n"
        << "  Event size   : " << EventSize << " (Number 32-bit words in this ZLE event)\n"
        << "  Event span   : Words[" << ZLEStartWord << "] to Words[" << ((ZLEStartWord+EventSize)-1) << "]\n"
@@ -697,7 +700,7 @@ int ADAQDigitizer::PrintZLEEventInfo(char *Buffer,
        << "  Word  Type  Value\n"
        << "---------------------------------------------------------------------------------"
        << endl;
-  
+
   for(int word=ZLEStartWord; word<(ZLEStartWord+ZLEHeaderSize); word++){
     bitset<32> BinaryOut(Words[word]);
     cout << "  " << word << "\t" << "header[" << (word-ZLEStartWord) << "]\t" << BinaryOut << endl;
@@ -705,20 +708,20 @@ int ADAQDigitizer::PrintZLEEventInfo(char *Buffer,
 
   int SizeStartWord = ZLEStartWord + ZLEHeaderSize;
   cout << "  " << SizeStartWord << "\tsize" << "\t" << Words[SizeStartWord] << endl;
-  
+
   int ZLEWaveformStartWord = SizeStartWord + 1;
   uint32_t ZLEWaveformWordCounter = 0;
 
   for(int word=ZLEWaveformStartWord; word<(ZLEStartWord+EventSize); word++){
-    
+
     uint32_t ZLEControl = Words[word] & ZLEControlMask;
     ZLEControl = ZLEControl >> 30;
-    
+
     if(ZLEControl == ZLEControlWordGoodMask){
       uint32_t NumWords = Words[word] & ZLENumWordMask;
-      
+
       bitset<32> TMP(NumWords);
-      
+
       cout << "  " << word << "\t" << "GOOD!"  << "\t"
 	   << NumWords << " words to follow!"
 	   << endl;
@@ -727,24 +730,24 @@ int ADAQDigitizer::PrintZLEEventInfo(char *Buffer,
     }
     else if(ZLEControl == ZLEControlWordSkipMask){
       uint32_t NumWords = Words[word] & ZLENumWordMask;
-      
+
       cout << "  " << word << "\t" << "skip" << "\t"
 	   << NumWords << " words have been skipped!"
 	   << endl;
     }
     else{
-      cout << "  " << word << "\t" << "data" << "\t" 
+      cout << "  " << word << "\t" << "data" << "\t"
 	   << "Word number: " << ZLEWaveformWordCounter << "\t\t";
-      
+
       uint32_t SampleN = Words[word] & ZLESampleAMask;
-      
+
       uint32_t SampleN_plus_1 = Words[word] & ZLESampleBMask;
       SampleN_plus_1 = SampleN_plus_1 >> 16;
-      
+
       cout << "Sample[" << (ZLEWaveformWordCounter*2)-1 << "] = " << SampleN << "\t"
 	   << "Sample[" << (ZLEWaveformWordCounter*2) << "] = " << SampleN_plus_1 << "\t"
 	   << endl;
-      
+
       ZLEWaveformWordCounter++;
     }
   }
@@ -753,7 +756,7 @@ int ADAQDigitizer::PrintZLEEventInfo(char *Buffer,
 }
 
 
-int ADAQDigitizer::GetZLEWaveform(char *Buffer, 
+int ADAQDigitizer::GetZLEWaveform(char *Buffer,
 				  int Event,
 				  vector<vector<uint16_t> > &Waveforms)
 {
@@ -763,7 +766,7 @@ int ADAQDigitizer::GetZLEWaveform(char *Buffer,
 
   // Cast a pointer to the PC buffer containing ZLE events
   uint32_t *Words = (uint32_t *)Buffer;
-  
+
   // Determine which word in the PC buffer should be the first word
   // readout depending on the event number
   if(Event == 0){
@@ -772,7 +775,7 @@ int ADAQDigitizer::GetZLEWaveform(char *Buffer,
   }
   else
     ZLEStartWord = ZLEWordCounter;
-  
+
   // Get the total number of 32-bit words in this ZLE event (4 header
   // words plus size, control, and sample words)
   uint32_t EventSize = Words[ZLEStartWord] & ZLEEventSizeMask;
@@ -787,24 +790,24 @@ int ADAQDigitizer::GetZLEWaveform(char *Buffer,
   // is obviously horseshit. This is a hack to prevent this situation
   // from causing segfaults. CAEN has been contacted regarding this
   // issue! ZSH (16 Oct 14)
-  
+
   if(EventSize > 1e5)
     return -42;
 
   //
   ///
   //// WARNING //// WARNING //// WARNING //// WARNING //// WARNING //// WARNING
-  
+
   // Increment the ZLEWordCounter with the number of words in the
   // current ZLE event such that, if there is another event that will
   // be readout after this one, the start word will be set correctly
   ZLEWordCounter += EventSize;
-  
+
   // Get the number of 32-bit words in the ZLE waveform (control words
   // + waveform samples (remember: 2 samples per word))
   int SizeStartWord = ZLEStartWord + ZLEHeaderSize;
   uint32_t ZLEWaveformSize = Words[SizeStartWord];
-  
+
   int ZLEWaveformStartWord = SizeStartWord + 1;
 
   uint32_t Channel = 0;
@@ -835,7 +838,7 @@ int ADAQDigitizer::GetZLEWaveform(char *Buffer,
       Waveforms[Channel].push_back(SampleB);
     }
   }
-  
+
   return 0;
 }
 
@@ -848,7 +851,7 @@ int ADAQDigitizer::GetChannelBufferStatus(bool *BufferStatus)
 {
 
   // The following bitmap for digitizer register 0x1n88 contains the
-  // channel's FPGA RAM buffer memory full status in bit[0]: 
+  // channel's FPGA RAM buffer memory full status in bit[0]:
   //  -- if bit[0] == 0 then memory is not full
   //  -- if bit[0] == 1 then memory is full.
   //
@@ -860,9 +863,9 @@ int ADAQDigitizer::GetChannelBufferStatus(bool *BufferStatus)
   // Channel register addresses and channel-to-channel increment
   uint32_t Start = CAEN_DGTZ_CHANNEL_STATUS_BASE_ADDRESS;
   uint32_t Offset = 0x0100;
-  
+
   for(int ch=0; ch<NumChannels; ch++){
-    
+
     uint32_t Addr32 = Start + Offset*ch;
     uint32_t Data32 = 0;
     int Status = 0;
@@ -870,13 +873,13 @@ int ADAQDigitizer::GetChannelBufferStatus(bool *BufferStatus)
     CommandStatus = GetChannelEnableMask(&Data32);
     if(!(Data32 & (1 << ch)))
       continue;
-    
+
     // Check to see if the 0-th of each channel's status register bit
     // is set; if any of the channel buffers are full then set the
     // BufferFull flag to true
     CommandStatus = CAEN_DGTZ_ReadRegister(BoardHandle, Addr32, &Data32);
     (Data32 & (1 << 0)) ? BufferStatus[ch] = true : BufferStatus[ch] = false;
-    
+
   }
   return CommandStatus;
 }
@@ -894,7 +897,7 @@ int ADAQDigitizer::GetSTDBufferLevel(double &BufferLevel)
   // The following variable maps the return value from digitizer
   // register 0x800C to the number of blocks into which the FPGA
   // channel memory is divided. The default is 0x0A = 1024 blocks.
-  
+
   map<uint32_t, uint32_t> BlockSizeMap;
   BlockSizeMap[0x00] = 1;
   BlockSizeMap[0x01] = 2;
@@ -907,27 +910,27 @@ int ADAQDigitizer::GetSTDBufferLevel(double &BufferLevel)
   BlockSizeMap[0x08] = 256;
   BlockSizeMap[0x09] = 512;
   BlockSizeMap[0x0A] = 1024;
-  
+
   // Get the register value from 0x800C in order to determine the
   // number of blocks in segmented memory.
-  
+
   uint32_t Addr32 = CAEN_DGTZ_BROAD_NUM_BLOCK_ADD;
   uint32_t Data32 = 0;
-  
+
   CommandStatus = CAEN_DGTZ_ReadRegister(BoardHandle, Addr32, &Data32);
   uint32_t MemoryBlocks = BlockSizeMap.at(Data32);
-  
+
   // Get the number of filled blocks (i.e. events) waiting in the FPGA
   // buffer memory to be readout and and use it to calculate the
   // buffer level (percentage of filled blocks)
-  
+
   Addr32 = CAEN_DGTZ_EVENT_STORED_ADD;
   Data32 = 0;
-  
+
   CommandStatus = CAEN_DGTZ_ReadRegister(BoardHandle, Addr32, &Data32);
 
   BufferLevel = Data32 * 1. / MemoryBlocks;
-  
+
   return CommandStatus;
 }
 
@@ -940,7 +943,7 @@ int ADAQDigitizer::GetPSDBufferLevel(double &BufferLevel)
   CommandStatus = CAEN_DGTZ_ReadRegister(BoardHandle, Addr32, &Data32);
 
   bitset<32> Data32Bitset(Data32);
-  
+
   // Test bit 4 for the following results
   //  0 == No channel has reached the
   //  1 == Maximum number of events has been reached
@@ -949,13 +952,13 @@ int ADAQDigitizer::GetPSDBufferLevel(double &BufferLevel)
     BufferLevel = 1.;
   else
     BufferLevel = 0.;
-  
+
   return CommandStatus;
 }
 
 
 int ADAQDigitizer::GetNumFPGAEvents(uint32_t *Data32)
-{ 
+{
   CommandStatus = GetRegisterValue(CAEN_DGTZ_EVENT_STORED_ADD,
 				   Data32);
   return CommandStatus;
