@@ -521,8 +521,16 @@ int ADAQDigitizer::SetAcquisitionControl(string AcqControl)
 {
   CommandStatus = -42;
 
-  if(AcqControl == "Software")
-    CommandStatus = SetAcquisitionMode(CAEN_DGTZ_SW_CONTROLLED);
+  if(AcqControl == "Software") {
+    // CommandStatus = SetAcquisitionMode(CAEN_DGTZ_SW_CONTROLLED);
+    uint32_t software_ctrl;
+    bitset<32> software_ctrl_bit;
+    software_ctrl_bit.set(0, 0);
+    software_ctrl_bit.set(1, 0);
+    software_ctrl_bit.set(3, 1);
+    software_ctrl = (uint32_t)software_ctrl_bit.to_ulong();
+    CommandStatus = SetRegisterValue(CAEN_DGTZ_ACQ_STATUS_ADD, software_ctrl);
+  }
   else if(AcqControl == "Gated (NIM)" or AcqControl == "Gated (TTL)"){
     CommandStatus = SetAcquisitionMode(CAEN_DGTZ_S_IN_CONTROLLED);
 
@@ -545,6 +553,7 @@ int ADAQDigitizer::SetAcquisitionControl(string AcqControl)
     bitset<32> Data32Bitset1(Data32);
     Data32Bitset1.set(0,1);
     Data32Bitset1.set(1,0);
+    Data32Bitset1.set(3, 1);
 
     Data32 = (uint32_t)Data32Bitset1.to_ulong();
     CommandStatus = SetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, Data32);
@@ -593,6 +602,7 @@ int ADAQDigitizer::SInDisarmAcquisition()
   Data32Bitset.set(0,0);
   Data32Bitset.set(1,0);
   Data32Bitset.set(2,0);
+  Data32Bitset.set(3, 0);
   Data32 = (uint32_t)Data32Bitset.to_ulong();
 
   CommandStatus = SetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, Data32);
