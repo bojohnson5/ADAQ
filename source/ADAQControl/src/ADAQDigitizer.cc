@@ -523,13 +523,14 @@ int ADAQDigitizer::SetAcquisitionControl(string AcqControl)
   CommandStatus = -42;
 
   if(AcqControl == "Software") {
-    // CommandStatus = SetAcquisitionMode(CAEN_DGTZ_SW_CONTROLLED);
+    CommandStatus = SetAcquisitionMode(CAEN_DGTZ_SW_CONTROLLED);
     uint32_t software_ctrl;
     bitset<32> software_ctrl_bit;
     software_ctrl_bit.set(0, 0);
     software_ctrl_bit.set(1, 0);
     software_ctrl_bit.set(3, 1);
     software_ctrl = (uint32_t)software_ctrl_bit.to_ulong();
+    cout << software_ctrl << endl;
     CommandStatus = SetRegisterValue(CAEN_DGTZ_ACQ_STATUS_ADD, software_ctrl);
   }
   else if(AcqControl == "Gated (NIM)" or AcqControl == "Gated (TTL)"){
