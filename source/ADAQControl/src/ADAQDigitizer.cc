@@ -519,6 +519,7 @@ int ADAQDigitizer::SetTriggerCoincidence(bool Enable, int Level)
 
 int ADAQDigitizer::SetAcquisitionControl(string AcqControl)
 {
+  cout << "In SetAcquisitionControl\n";
   CommandStatus = -42;
 
   if(AcqControl == "Software") {
@@ -565,6 +566,9 @@ int ADAQDigitizer::SetAcquisitionControl(string AcqControl)
 		<< "                Select 'Software', 'Gated (NIM)' or 'Gated (TTL)'.\n"
 		<< std::endl;
 
+    uint32_t test;
+    GetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, &test);
+    cout << "Register 0x8100 set to: " << test << endl;
   return CommandStatus;
 }
 
