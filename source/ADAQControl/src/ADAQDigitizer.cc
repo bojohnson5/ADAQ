@@ -520,6 +520,7 @@ int ADAQDigitizer::SetTriggerCoincidence(bool Enable, int Level)
 int ADAQDigitizer::SetAcquisitionControl(string AcqControl)
 {
   cout << "In SetAcquisitionControl\n";
+  cout << AcqControl << endl;
   CommandStatus = -42;
 
   if(AcqControl == "Software") {
