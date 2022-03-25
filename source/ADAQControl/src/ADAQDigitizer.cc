@@ -568,6 +568,7 @@ int ADAQDigitizer::SetAcquisitionControl(string AcqControl)
     }
   }
 
+  // more print statements here
   uint32_t test;
   GetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, &test);
   cout << "Register 0x8100 set to: " << test << endl;
