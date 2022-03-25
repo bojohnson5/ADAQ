@@ -559,16 +559,18 @@ int ADAQDigitizer::SetAcquisitionControl(string AcqControl)
     Data32 = (uint32_t)Data32Bitset1.to_ulong();
     CommandStatus = SetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, Data32);
   }
-  else
-    if(Verbose)
+  else {
+    if(Verbose) {
       std::cout << "ADAQDigitizer[" << BoardID << "] : Error! Unsupported acquisition control style ("
-		<< AcqControl << ") was specified!\n"
-		<< "                Select 'Software', 'Gated (NIM)' or 'Gated (TTL)'.\n"
-		<< std::endl;
+                << AcqControl << ") was specified!\n"
+                << "                Select 'Software', 'Gated (NIM)' or 'Gated (TTL)'.\n"
+                << std::endl;
+    }
+  }
 
-    uint32_t test;
-    GetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, &test);
-    cout << "Register 0x8100 set to: " << test << endl;
+  uint32_t test;
+  GetRegisterValue(CAEN_DGTZ_ACQ_CONTROL_ADD, &test);
+  cout << "Register 0x8100 set to: " << test << endl;
   return CommandStatus;
 }
 
